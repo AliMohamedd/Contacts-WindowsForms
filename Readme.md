@@ -100,11 +100,11 @@ Add screenshots of the application here.
 
 ### Main Screen
 
-![Main Screen](screenshots/main-win.png)
+![Main Screen](screenshots/List-Window.png)
 
-### Contact Details
+### Add Screen
 
-![Contact Details](screenshots/contact-details.png)
+![Add Screen](screenshots/Add-Winsow.png)
 
 ## Learning Objectives
 

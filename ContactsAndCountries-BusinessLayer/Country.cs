@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,8 @@ namespace ContactsAndCountries_BusinessLayer
 {
     public class clsCountry
     {
-        private enum enMode { AddNew = 0, Update = 1}
-        private enMode Mode = enMode.AddNew;
+        public enum enMode { AddNew = 0, Update = 1}
+        public enMode Mode { private set; get; }
 
         public int ID { private set; get; }
         public string CountryName{ set; get; }
@@ -21,9 +22,9 @@ namespace ContactsAndCountries_BusinessLayer
         public clsCountry()
         {
             this.ID = -1;
-            this.CountryName = "";
-            this.Code = "";
-            this.PhoneCode = "";
+            this.CountryName = String.Empty;
+            this.Code = String.Empty;
+            this.PhoneCode = String.Empty;
             Mode = enMode.AddNew;
         }
 
@@ -40,28 +41,14 @@ namespace ContactsAndCountries_BusinessLayer
         {
             clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByID(ID);
 
-            if(CountryDTO != null)
-            {
-                return new clsCountry(CountryDTO);
-            }
-            else
-            {
-                return null;
-            }
+            return CountryDTO == null ? null : new clsCountry(CountryDTO);
         }
 
         public static clsCountry Find(string CountryName)
         {
             clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByName(CountryName);
 
-            if (CountryDTO != null)
-            {
-                return new clsCountry(CountryDTO);
-            }
-            else
-            {
-                return null;
-            }
+            return CountryDTO == null ? null : new clsCountry(CountryDTO);
         }
 
         public static bool IsCountryExist(int ID)
@@ -74,23 +61,30 @@ namespace ContactsAndCountries_BusinessLayer
             return clsCountryDataAccess.IsCountryExist(FirstName);
         }
 
+        private clsCountryDTO _ToDo()
+        {
+            return new clsCountryDTO
+            {
+                ID = this.ID,
+                CountryName = this.CountryName,
+                Code = this.Code,
+                PhoneCode = this.PhoneCode,
+            };
+        }
+
         private bool _AddNewCountry()
         {
-            clsCountryDTO CountryDTO = new clsCountryDTO();
-            CountryDTO.CountryName = this.CountryName;
-            CountryDTO.Code = this.Code;
-            CountryDTO.PhoneCode = this.PhoneCode;
+            clsCountryDTO CountryDTO = _ToDo();
+
             this.ID = clsCountryDataAccess.AddNewCountry(CountryDTO);
+
             return (this.ID != -1);
         }
 
         private bool _UpdateCountry()
         {
-            clsCountryDTO CountryDTO = new clsCountryDTO();
-            CountryDTO.ID = this.ID;
-            CountryDTO.CountryName = this.CountryName;
-            CountryDTO.Code = this.Code;
-            CountryDTO.PhoneCode = this.PhoneCode;
+            clsCountryDTO CountryDTO = _ToDo();
+
             return clsCountryDataAccess.UpdateCountry(CountryDTO);
         }
         

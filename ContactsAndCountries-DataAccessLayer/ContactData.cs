@@ -32,12 +32,13 @@ namespace ContactsAndCountries_DataAccessLayer
                             if (reader.Read())
                             {
                                 //The record was found.
+                                ContactDTO = new clsContactDTO();
 
-                                ContactDTO.FirstName = (string)reader["FirstName"];
-                                ContactDTO.LastName = (string)reader["LastName"];
-                                ContactDTO.Email = (string)reader["Email"];
-                                ContactDTO.Phone = (string)reader["Phone"];
-                                ContactDTO.Address = (string)reader["Address"];
+                                ContactDTO.FirstName = reader["FirstName"].ToString();
+                                ContactDTO.LastName = reader["LastName"].ToString();
+                                ContactDTO.Email = reader["Email"].ToString();
+                                ContactDTO.Phone = reader["Phone"].ToString();
+                                ContactDTO.Address = reader["Address"].ToString();
                                 ContactDTO.DateOfBirth = (DateTime)reader["DateOfBirth"];
                                 ContactDTO.CountryID = (int)reader["CountryID"];
 
@@ -89,14 +90,13 @@ namespace ContactsAndCountries_DataAccessLayer
                         command.Parameters.AddWithValue("@DateOfBirth", ContactDTO.DateOfBirth);
                         command.Parameters.AddWithValue("@CountryID", ContactDTO.CountryID);
 
-                        if (ContactDTO.ImagePath != "")
+                        if (!string.IsNullOrWhiteSpace(ContactDTO.ImagePath))
                         {
                             command.Parameters.AddWithValue("@ImagePath", ContactDTO.ImagePath);
                         }
                         else
                         {
                             command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
-
                         }
 
                         connection.Open();
@@ -142,6 +142,7 @@ namespace ContactsAndCountries_DataAccessLayer
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("@ContactID", ContactDTO.ID);
                         command.Parameters.AddWithValue("@FirstName", ContactDTO.FirstName);
                         command.Parameters.AddWithValue("@LastName", ContactDTO.LastName);
                         command.Parameters.AddWithValue("@Email", ContactDTO.Email);
@@ -150,14 +151,13 @@ namespace ContactsAndCountries_DataAccessLayer
                         command.Parameters.AddWithValue("@DateOfBirth", ContactDTO.DateOfBirth);
                         command.Parameters.AddWithValue("@CountryID", ContactDTO.CountryID);
 
-                        if (ContactDTO.ImagePath != "")
+                        if (!string.IsNullOrWhiteSpace(ContactDTO.ImagePath))
                         {
                             command.Parameters.AddWithValue("@ImagePath", ContactDTO.ImagePath);
                         }
                         else
                         {
                             command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
-
                         }
 
                         connection.Open();
@@ -206,7 +206,7 @@ namespace ContactsAndCountries_DataAccessLayer
 
         public static DataTable GetAllContacts()
         {
-            DataTable dt = null;
+            DataTable dt = new DataTable();
 
             try
             {
@@ -223,7 +223,6 @@ namespace ContactsAndCountries_DataAccessLayer
                             if (reader.HasRows)
                             {
                                 // Load All Rows.
-                                dt = new DataTable();
                                 dt.Load(reader);
                             }
                         }

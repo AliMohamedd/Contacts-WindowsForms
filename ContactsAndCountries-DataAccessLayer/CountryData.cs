@@ -36,11 +36,11 @@ namespace ContactsAndCountries_DataAccessLayer
 
                                 CountryDTO.ID = ID;
                                 if (reader["CountryName"] != System.DBNull.Value)
-                                    CountryDTO.CountryName = (string)reader["CountryName"];
+                                    CountryDTO.CountryName = reader["CountryName"].ToString();
                                 if (reader["Code"] != System.DBNull.Value)
-                                    CountryDTO.Code = (string)reader["Code"];
+                                    CountryDTO.Code = reader["Code"].ToString();
                                 if (reader["PhoneCode"] != System.DBNull.Value)
-                                    CountryDTO.PhoneCode = (string)reader["PhoneCode"];
+                                    CountryDTO.PhoneCode = reader["PhoneCode"].ToString();
                             }
                         }
                     }
@@ -79,12 +79,12 @@ namespace ContactsAndCountries_DataAccessLayer
                                 CountryDTO = new clsCountryDTO();
 
                                 CountryDTO.ID = (int)reader["CountryID"];
-                                if (reader["Code"] != System.DBNull.Value)
-                                    CountryDTO.Code = (string)reader["Code"];
                                 if (reader["CountryName"] != System.DBNull.Value)
-                                    CountryDTO.CountryName = CountryName;
+                                    CountryDTO.CountryName = reader["CountryName"].ToString();
+                                if (reader["Code"] != System.DBNull.Value)
+                                    CountryDTO.Code = reader["Code"].ToString();
                                 if (reader["PhoneCode"] != System.DBNull.Value)
-                                    CountryDTO.PhoneCode = (string)reader["PhoneCode"];
+                                    CountryDTO.PhoneCode = reader["PhoneCode"].ToString();
                             }
                         }
                         
@@ -179,7 +179,7 @@ namespace ContactsAndCountries_DataAccessLayer
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        if (CountryDTO.CountryName != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.CountryName))
                             if (CountryDTO.CountryName.Length < 51)
                                 command.Parameters.AddWithValue("@CountryName", CountryDTO.CountryName);
                             else
@@ -187,7 +187,7 @@ namespace ContactsAndCountries_DataAccessLayer
                         else
                             command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
 
-                        if (CountryDTO.Code != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.Code))
                             if (CountryDTO.Code.Length < 4)
                                 command.Parameters.AddWithValue("@Code", CountryDTO.Code);
                             else
@@ -195,7 +195,7 @@ namespace ContactsAndCountries_DataAccessLayer
                         else
                             command.Parameters.AddWithValue("@Code", System.DBNull.Value);
 
-                        if (CountryDTO.PhoneCode != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.PhoneCode))
                             if (CountryDTO.PhoneCode.Length < 4)
                                 command.Parameters.AddWithValue("@PhoneCode", CountryDTO.PhoneCode);
                             else
@@ -242,7 +242,7 @@ namespace ContactsAndCountries_DataAccessLayer
                     {
                         command.Parameters.AddWithValue("@CountryID", CountryDTO.ID);
 
-                        if (CountryDTO.CountryName != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.CountryName))
                             if (CountryDTO.CountryName.Length < 51)
                                 command.Parameters.AddWithValue("@CountryName", CountryDTO.CountryName);
                             else
@@ -250,7 +250,7 @@ namespace ContactsAndCountries_DataAccessLayer
                         else
                             command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
 
-                        if (CountryDTO.Code != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.Code))
                             if (CountryDTO.Code.Length < 4)
                                 command.Parameters.AddWithValue("@Code", CountryDTO.Code);
                             else
@@ -258,7 +258,7 @@ namespace ContactsAndCountries_DataAccessLayer
                         else
                             command.Parameters.AddWithValue("@Code", System.DBNull.Value);
 
-                        if (CountryDTO.PhoneCode != "")
+                        if (!string.IsNullOrWhiteSpace(CountryDTO.PhoneCode))
                             if (CountryDTO.PhoneCode.Length < 4)
                                 command.Parameters.AddWithValue("@PhoneCode", CountryDTO.PhoneCode);
                             else
@@ -312,7 +312,7 @@ namespace ContactsAndCountries_DataAccessLayer
 
         public static DataTable GetAllCountries()
         {
-            DataTable dt = null;
+            DataTable dt = new DataTable();
 
             try
             {
@@ -329,7 +329,6 @@ namespace ContactsAndCountries_DataAccessLayer
                         if (reader.HasRows)
                         {
                             // Load All Rows.
-                            dt = new DataTable();
                             dt.Load(reader);
                         }
                     }

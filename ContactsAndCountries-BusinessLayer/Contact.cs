@@ -11,7 +11,7 @@ namespace ContactsAndCountries_BusinessLayer
     public class clsContact
     {
         public enum enMode { AddNew = 0, Update = 1 }
-        public enMode Mode = enMode.AddNew;
+        public enMode Mode { private set; get; }
 
         public int ID { private set; get; }
         public string FirstName { set; get; }
@@ -27,14 +27,14 @@ namespace ContactsAndCountries_BusinessLayer
         public clsContact()
         {
             this.ID = -1;
-            this.FirstName = "";
-            this.LastName = "";
-            this.Email = "";
-            this.Phone = "";
-            this.Address = "";
+            this.FirstName = string.Empty;
+            this.LastName = string.Empty;
+            this.Email = string.Empty;
+            this.Phone = string.Empty;
+            this.Address = string.Empty;
             this.DateOfBirth = DateTime.Now;
             this.CountryID = -1;
-            this.ImagePath = "";
+            this.ImagePath = string.Empty;
             Mode = enMode.AddNew;
         }
 
@@ -57,14 +57,7 @@ namespace ContactsAndCountries_BusinessLayer
         {
             clsContactDTO ContactDTO = clsContactDataAccess.GetContactInfoByID(ID);
 
-            if (ContactDTO != null)
-            {
-                return new clsContact(ContactDTO);
-            }
-            else
-            {
-                return null;
-            }
+            return ContactDTO == null ? null : new clsContact(ContactDTO);
         }
 
         public static bool IsContactExist(int ID)
@@ -72,17 +65,25 @@ namespace ContactsAndCountries_BusinessLayer
             return (clsContactDataAccess.IsContactExist(ID));
         }
 
+        private clsContactDTO _ToDTO()
+        {
+            return new clsContactDTO
+            {
+                ID = this.ID,
+                FirstName = this.FirstName,
+                LastName = this.LastName,
+                Email = this.Email,
+                Phone = this.Phone,
+                Address = this.Address,
+                DateOfBirth = this.DateOfBirth,
+                CountryID = this.CountryID,
+                ImagePath = this.ImagePath
+            };
+        }
+
         private bool _AddNewContact()
         {
-            clsContactDTO ContactDTO = new clsContactDTO();
-            ContactDTO.FirstName = this.FirstName;
-            ContactDTO.LastName = this.LastName;
-            ContactDTO.Email = this.Email;
-            ContactDTO.Phone = this.Phone;
-            ContactDTO.Address = this.Address;
-            ContactDTO.DateOfBirth = this.DateOfBirth;
-            ContactDTO.CountryID = this.CountryID;
-            ContactDTO.ImagePath = this.ImagePath;
+            clsContactDTO ContactDTO = _ToDTO();
 
             this.ID = clsContactDataAccess.AddNewContact(ContactDTO);
 
@@ -91,19 +92,9 @@ namespace ContactsAndCountries_BusinessLayer
 
         private bool _UpdateContact()
         {
-            clsContactDTO ContactDTO = new clsContactDTO();
-            ContactDTO.ID = this.ID;
-            ContactDTO.FirstName = this.FirstName;
-            ContactDTO.LastName = this.LastName;
-            ContactDTO.Email = this.Email;
-            ContactDTO.Phone = this.Phone;
-            ContactDTO.Address = this.Address;
-            ContactDTO.DateOfBirth = this.DateOfBirth;
-            ContactDTO.CountryID = this.CountryID;
-            ContactDTO.ImagePath = this.ImagePath;
+            clsContactDTO ContactDTO = _ToDTO();
 
-            if (clsContactDataAccess.UpdateContact(ContactDTO)) return true;
-            return false;
+            return (clsContactDataAccess.UpdateContact(ContactDTO));
         }
 
         public bool Save()

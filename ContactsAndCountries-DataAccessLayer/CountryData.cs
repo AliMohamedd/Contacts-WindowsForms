@@ -11,291 +11,271 @@ namespace ContactsAndCountries_DataAccessLayer
 {
     public class clsCountryDataAccess
     {
-        public static bool GetCountryByID(int ID, ref string CountryName, ref string Code,
-            ref string PhoneCode)
+        public static clsCountryDTO GetCountryByID(int ID)
         {
-            bool isFound = false;
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT * FROM Countries WHERE CountryID = @CountryID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@CountryID", ID);
+            clsCountryDTO CountryDTO = null;
 
             try
             {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    //The record was found.
-                    isFound = true;
+                    string query = "SELECT * FROM Countries WHERE CountryID = @CountryID";
 
-                    if (reader["CountryName"] != System.DBNull.Value)
-                        CountryName = (string)reader["CountryName"];
-                    if (reader["Code"] != System.DBNull.Value)
-                        Code = (string)reader["Code"];
-                    if (reader["PhoneCode"] != System.DBNull.Value)
-                        PhoneCode = (string)reader["PhoneCode"];
-                }
-                else
-                {
-                    // The record was not found.
-                    isFound = false;
-                }
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryID", ID);
 
-                reader.Close();
+                        connection.Open();
+
+                        using(SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                //The record was found.
+                                CountryDTO = new clsCountryDTO();
+
+                                CountryDTO.ID = ID;
+                                if (reader["CountryName"] != System.DBNull.Value)
+                                    CountryDTO.CountryName = (string)reader["CountryName"];
+                                if (reader["Code"] != System.DBNull.Value)
+                                    CountryDTO.Code = (string)reader["Code"];
+                                if (reader["PhoneCode"] != System.DBNull.Value)
+                                    CountryDTO.PhoneCode = (string)reader["PhoneCode"];
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                isFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
-            return isFound;
+            return CountryDTO;
         }
 
-        public static bool GetCountryByName(string CountryName, ref int ID, ref string Code,
-            ref string PhoneCode)
+        public static clsCountryDTO GetCountryByName(string CountryName)
         {
-            bool isFound = false;
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT * FROM Countries WHERE CountryName = @CountryName";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@CountryName", CountryName);
+            clsCountryDTO CountryDTO = null;
 
             try
             {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    //The record was found.
-                    isFound = true;
+                    string query = "SELECT * FROM Countries WHERE CountryName = @CountryName";
 
-                    ID = (int)reader["CountryID"];
-                    if (reader["Code"] != System.DBNull.Value)
-                        Code = (string)reader["Code"];
-                    if (reader["PhoneCode"] != System.DBNull.Value)
-                        PhoneCode = (string)reader["PhoneCode"];
-                }
-                else
-                {
-                    // The record was not found.
-                    isFound = false;
-                }
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryName", CountryName);
 
-                reader.Close();
+                        connection.Open();
+
+                        using(SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                //The record was found.
+                                CountryDTO = new clsCountryDTO();
+
+                                CountryDTO.ID = (int)reader["CountryID"];
+                                if (reader["Code"] != System.DBNull.Value)
+                                    CountryDTO.Code = (string)reader["Code"];
+                                if (reader["CountryName"] != System.DBNull.Value)
+                                    CountryDTO.CountryName = CountryName;
+                                if (reader["PhoneCode"] != System.DBNull.Value)
+                                    CountryDTO.PhoneCode = (string)reader["PhoneCode"];
+                            }
+                        }
+                        
+                    }
+                }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                isFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
-            return isFound;
+            return CountryDTO;
         }
 
         public static bool IsCountryExist(int ID)
         {
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT 1 FROM Countries WHERE CountryID = @CountryID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@CountryID", ID);
-
             try
             {
-                connection.Open();
-
-                object result = command.ExecuteScalar();
-
-                if (result != null)
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    return true;
+                    string query = "SELECT 1 FROM Countries WHERE CountryID = @CountryID";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryID", ID);
+
+                        connection.Open();
+
+                        object result = command.ExecuteScalar();
+
+                        if (result != null)
+                        {
+                            return true;
+                        }
+                    }
                 }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                return false;
+                throw;
             }
-            finally
-            {
-                connection.Close();
-            }
-
+  
             return false;
         }
 
         public static bool IsCountryExist(string CountryName)
         {
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT 1 FROM Countries WHERE CountryName = @CountryName";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@CountryName", CountryName);
-
             try
             {
-                connection.Open();
-
-                object result = command.ExecuteScalar();
-
-                if (result != null)
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    return true;
+                    string query = "SELECT 1 FROM Countries WHERE CountryName = @CountryName";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryName", CountryName);
+
+                        connection.Open();
+
+                        object result = command.ExecuteScalar();
+
+                        if (result != null)
+                        {
+                            return true;
+                        }
+                    }
                 }
+                
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
             return false;
         }
 
-        public static int AddNewCountry(string CountryName, string Code, string PhoneCode)
+        public static int AddNewCountry(clsCountryDTO CountryDTO)
         {
-            int CountryID = -1;
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = @"INSERT INTO Countries (CountryName, Code, PhoneCode)
-                                  VALUES (@CountryName, @Code, @PhoneCode);
-                                  SELECT SCOPE_IDENTITY();";
-
-            SqlCommand command = new SqlCommand(query, connection);
+            CountryDTO.ID = -1;
 
             try
             {
-                connection.Open();
-
-                if (CountryName != "")
-                    if (CountryName.Length < 51)
-                        command.Parameters.AddWithValue("@CountryName", CountryName);
-                    else
-                        throw new Exception("The value assigned to CountryName exceeded the limit of 50 ");
-                else
-                    command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
-
-                if (Code != "")
-                    if (Code.Length < 4)
-                        command.Parameters.AddWithValue("@Code", Code);
-                    else
-                        throw new Exception("The value assigned to Code exceeded the limit of 3 ");
-                else
-                    command.Parameters.AddWithValue("@Code", System.DBNull.Value);
-
-                if (PhoneCode != "")
-                    if (PhoneCode.Length < 4)
-                        command.Parameters.AddWithValue("@PhoneCode", PhoneCode);
-                    else
-                        throw new Exception("The value assigned to PhoneCode exceeded the limit of 3 ");
-                else
-                    command.Parameters.AddWithValue("@PhoneCode", System.DBNull.Value);
-
-                object result = command.ExecuteScalar();
-
-                if (result != null && int.TryParse(result.ToString(), out int insertedID))
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    //The Contact inserted Successfully.
-                    CountryID = insertedID;
+                    string query = @"INSERT INTO Countries (CountryName, Code, PhoneCode)
+                                  VALUES (@CountryName, @Code, @PhoneCode);
+                                  SELECT SCOPE_IDENTITY();";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        if (CountryDTO.CountryName != "")
+                            if (CountryDTO.CountryName.Length < 51)
+                                command.Parameters.AddWithValue("@CountryName", CountryDTO.CountryName);
+                            else
+                                throw new Exception("The value assigned to CountryName exceeded the limit of 50 ");
+                        else
+                            command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
+
+                        if (CountryDTO.Code != "")
+                            if (CountryDTO.Code.Length < 4)
+                                command.Parameters.AddWithValue("@Code", CountryDTO.Code);
+                            else
+                                throw new Exception("The value assigned to Code exceeded the limit of 3 ");
+                        else
+                            command.Parameters.AddWithValue("@Code", System.DBNull.Value);
+
+                        if (CountryDTO.PhoneCode != "")
+                            if (CountryDTO.PhoneCode.Length < 4)
+                                command.Parameters.AddWithValue("@PhoneCode", CountryDTO.PhoneCode);
+                            else
+                                throw new Exception("The value assigned to PhoneCode exceeded the limit of 3 ");
+                        else
+                            command.Parameters.AddWithValue("@PhoneCode", System.DBNull.Value);
+
+                        connection.Open();
+
+                        object result = command.ExecuteScalar();
+
+                        if (result != null && int.TryParse(result.ToString(), out int insertedID))
+                        {
+                            //The Contact inserted Successfully.
+                            CountryDTO.ID = insertedID;
+                        }
+                    }
                 }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
-            return CountryID;
+            return CountryDTO.ID;
         }
 
-        public static bool UpdateCountry(int ID, string CountryName, string Code, string PhoneCode)
+        public static bool UpdateCountry(clsCountryDTO CountryDTO)
         {
             int affectedRows = 0;
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = @"UPDATE Countries
+            try
+            {
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
+                {
+                    string query = @"UPDATE Countries
                                 SET CountryName = @CountryName,
                                     Code = @Code,
                                     PhoneCode = @PhoneCode
                                WHERE CountryID = @CountryID;";
 
-            SqlCommand command = new SqlCommand(query, connection);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryID", CountryDTO.ID);
 
-            command.Parameters.AddWithValue("@CountryID", ID);
+                        if (CountryDTO.CountryName != "")
+                            if (CountryDTO.CountryName.Length < 51)
+                                command.Parameters.AddWithValue("@CountryName", CountryDTO.CountryName);
+                            else
+                                throw new Exception("The value assigned to CountryName exceeded the limit of 50 ");
+                        else
+                            command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
 
-            try
-            {
-                connection.Open();
+                        if (CountryDTO.Code != "")
+                            if (CountryDTO.Code.Length < 4)
+                                command.Parameters.AddWithValue("@Code", CountryDTO.Code);
+                            else
+                                throw new Exception("The value assigned to Code exceeded the limit of 3 ");
+                        else
+                            command.Parameters.AddWithValue("@Code", System.DBNull.Value);
 
-                if (CountryName != "")
-                    if (CountryName.Length < 51)
-                        command.Parameters.AddWithValue("@CountryName", CountryName);
-                    else
-                        throw new Exception("The value assigned to CountryName exceeded the limit of 50 ");
-                else
-                    command.Parameters.AddWithValue("@CountryName", System.DBNull.Value);
+                        if (CountryDTO.PhoneCode != "")
+                            if (CountryDTO.PhoneCode.Length < 4)
+                                command.Parameters.AddWithValue("@PhoneCode", CountryDTO.PhoneCode);
+                            else
+                                throw new Exception("The value assigned to PhoneCode exceeded the limit of 3 ");
+                        else
+                            command.Parameters.AddWithValue("@PhoneCode", System.DBNull.Value);
 
-                if (Code != "")
-                    if (Code.Length < 4)
-                        command.Parameters.AddWithValue("@Code", Code);
-                    else
-                        throw new Exception("The value assigned to Code exceeded the limit of 3 ");
-                else
-                    command.Parameters.AddWithValue("@Code", System.DBNull.Value);
+                        connection.Open();
 
-                if (PhoneCode != "")
-                    if (PhoneCode.Length < 4)
-                        command.Parameters.AddWithValue("@PhoneCode", PhoneCode);
-                    else
-                        throw new Exception("The value assigned to PhoneCode exceeded the limit of 3 ");
-                else
-                    command.Parameters.AddWithValue("@PhoneCode", System.DBNull.Value);
-
-                affectedRows = command.ExecuteNonQuery();
+                        affectedRows = command.ExecuteNonQuery();
+                    }
+                }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
             return (affectedRows > 0);
@@ -305,28 +285,26 @@ namespace ContactsAndCountries_DataAccessLayer
         {
             int affectedRows = 0;
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "DELETE FROM Countries WHERE CountryID = @CountryID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@CountryID", ID);
-
             try
             {
-                connection.Open();
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
+                {
+                    string query = "DELETE FROM Countries WHERE CountryID = @CountryID";
 
-                affectedRows = command.ExecuteNonQuery();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@CountryID", ID);
+                        
+                        connection.Open();
+
+                        affectedRows = command.ExecuteNonQuery();
+                    }
+                }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
             return (affectedRows > 0);
@@ -334,35 +312,33 @@ namespace ContactsAndCountries_DataAccessLayer
 
         public static DataTable GetAllCountries()
         {
-            DataTable dt = new DataTable();
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT * FROM Countries order by CountryName";
-
-            SqlCommand command = new SqlCommand(query, connection);
+            DataTable dt = null;
 
             try
             {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.HasRows)
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    // Load All Rows.
-                    dt.Load(reader);
-                }
+                    string query = "SELECT * FROM Countries order by CountryName";
 
-                reader.Close();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        connection.Open();
+
+                        using(SqlDataReader reader = command.ExecuteReader())
+                 
+                        if (reader.HasRows)
+                        {
+                            // Load All Rows.
+                            dt = new DataTable();
+                            dt.Load(reader);
+                        }
+                    }
+                }
             }
             catch (Exception Error)
             {
                 // Here we can add error to Logs.
-            }
-            finally
-            {
-                connection.Close();
+                throw;
             }
 
             return dt;

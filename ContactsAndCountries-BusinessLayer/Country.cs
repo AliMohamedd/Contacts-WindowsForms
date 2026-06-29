@@ -27,24 +27,22 @@ namespace ContactsAndCountries_BusinessLayer
             Mode = enMode.AddNew;
         }
 
-        private clsCountry(int ID, string CountryName, string Code, string PhoneCode)
+        private clsCountry(clsCountryDTO CountryDTO)
         {
-            this.ID = ID;
-            this.CountryName = CountryName;
-            this.Code = Code;
-            this.PhoneCode = Code;
+            this.ID = CountryDTO.ID;
+            this.CountryName = CountryDTO.CountryName;
+            this.Code = CountryDTO.Code;
+            this.PhoneCode = CountryDTO.PhoneCode;
             Mode = enMode.Update;
         }
 
         public static clsCountry Find(int ID)
         {
-            string CountryName = "";
-            string Code = "";
-            string PhoneCode = "";
+            clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByID(ID);
 
-            if(clsCountryDataAccess.GetCountryByID(ID, ref CountryName, ref Code, ref PhoneCode))
+            if(CountryDTO != null)
             {
-                return new clsCountry(ID, CountryName, Code, PhoneCode);
+                return new clsCountry(CountryDTO);
             }
             else
             {
@@ -54,13 +52,11 @@ namespace ContactsAndCountries_BusinessLayer
 
         public static clsCountry Find(string CountryName)
         {
-            int ID = -1;
-            string Code = "";
-            string PhoneCode = "";
+            clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByName(CountryName);
 
-            if (clsCountryDataAccess.GetCountryByName(CountryName, ref ID, ref Code, ref PhoneCode))
+            if (CountryDTO != null)
             {
-                return new clsCountry(ID, CountryName, Code, PhoneCode);
+                return new clsCountry(CountryDTO);
             }
             else
             {
@@ -80,13 +76,22 @@ namespace ContactsAndCountries_BusinessLayer
 
         private bool _AddNewCountry()
         {
-            this.ID = clsCountryDataAccess.AddNewCountry(this.CountryName, this.Code, this.PhoneCode);
+            clsCountryDTO CountryDTO = new clsCountryDTO();
+            CountryDTO.CountryName = this.CountryName;
+            CountryDTO.Code = this.Code;
+            CountryDTO.PhoneCode = this.PhoneCode;
+            this.ID = clsCountryDataAccess.AddNewCountry(CountryDTO);
             return (this.ID != -1);
         }
 
         private bool _UpdateCountry()
         {
-            return clsCountryDataAccess.UpdateCountry(this.ID, this.CountryName, this.Code, this.PhoneCode);
+            clsCountryDTO CountryDTO = new clsCountryDTO();
+            CountryDTO.ID = this.ID;
+            CountryDTO.CountryName = this.CountryName;
+            CountryDTO.Code = this.Code;
+            CountryDTO.PhoneCode = this.PhoneCode;
+            return clsCountryDataAccess.UpdateCountry(CountryDTO);
         }
         
         public bool Save()

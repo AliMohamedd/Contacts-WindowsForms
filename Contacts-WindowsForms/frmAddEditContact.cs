@@ -142,8 +142,6 @@ namespace Contacts_WindowsForms
         {
             pbContact.ImageLocation = null;
             lbllnkRemove.Visible = false;
-        }
-
-        
+        } 
     }
 }

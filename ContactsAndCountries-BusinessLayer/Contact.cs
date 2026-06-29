@@ -39,34 +39,27 @@ namespace ContactsAndCountries_BusinessLayer
         }
 
         // Used privatly by the find method to fill correct data form DB.
-        private clsContact(int ID, string FirstName, string LastName, string Email,
-                string Phone, string Address, DateTime DateOfBirth, int CountryID, string ImagePath)
+        private clsContact(clsContactDTO ContactDTO)
         {
-            this.ID = ID;
-            this.FirstName = FirstName;
-            this.LastName = LastName;
-            this.Email = Email;
-            this.Phone = Phone;
-            this.Address = Address;
-            this.DateOfBirth = DateOfBirth;
-            this.CountryID = CountryID;
-            this.ImagePath = ImagePath;
+            this.ID = ContactDTO.ID;
+            this.FirstName = ContactDTO.FirstName;
+            this.LastName = ContactDTO.LastName;
+            this.Email = ContactDTO.Email;
+            this.Phone = ContactDTO.Phone;
+            this.Address = ContactDTO.Address;
+            this.DateOfBirth = ContactDTO.DateOfBirth;
+            this.CountryID = ContactDTO.CountryID;
+            this.ImagePath = ContactDTO.ImagePath;
             Mode = enMode.Update;
         }
 
         public static clsContact Find(int ID)
         {
-            string FirstName = "", LastName = "", Email = "", Phone = "", Address = "", ImagePath = "";
-            DateTime DateOfBirth = DateTime.Now;
-            int CountryID = -1;
+            clsContactDTO ContactDTO = clsContactDataAccess.GetContactInfoByID(ID);
 
-            bool IsFound = clsContactDataAccess.GetContactInfoByID(ID, ref FirstName, ref LastName, ref Email,
-                ref Phone, ref Address, ref DateOfBirth, ref CountryID, ref ImagePath);
-
-            if (IsFound)
+            if (ContactDTO != null)
             {
-                return new clsContact(ID, FirstName, LastName, Email, Phone, Address,
-                    DateOfBirth, CountryID, ImagePath);
+                return new clsContact(ContactDTO);
             }
             else
             {
@@ -81,16 +74,35 @@ namespace ContactsAndCountries_BusinessLayer
 
         private bool _AddNewContact()
         {
-            this.ID = clsContactDataAccess.AddNewContact(this.FirstName, this.LastName, this.Email, this.Phone,
-                this.Address, this.DateOfBirth, this.CountryID, this.ImagePath);
+            clsContactDTO ContactDTO = new clsContactDTO();
+            ContactDTO.FirstName = this.FirstName;
+            ContactDTO.LastName = this.LastName;
+            ContactDTO.Email = this.Email;
+            ContactDTO.Phone = this.Phone;
+            ContactDTO.Address = this.Address;
+            ContactDTO.DateOfBirth = this.DateOfBirth;
+            ContactDTO.CountryID = this.CountryID;
+            ContactDTO.ImagePath = this.ImagePath;
+
+            this.ID = clsContactDataAccess.AddNewContact(ContactDTO);
 
             return (this.ID != -1);
         }
 
         private bool _UpdateContact()
         {
-            if (clsContactDataAccess.UpdateContact(this.ID, this.FirstName, this.LastName, this.Email, this.Phone,
-                this.Address, this.DateOfBirth, this.CountryID, this.ImagePath)) return true;
+            clsContactDTO ContactDTO = new clsContactDTO();
+            ContactDTO.ID = this.ID;
+            ContactDTO.FirstName = this.FirstName;
+            ContactDTO.LastName = this.LastName;
+            ContactDTO.Email = this.Email;
+            ContactDTO.Phone = this.Phone;
+            ContactDTO.Address = this.Address;
+            ContactDTO.DateOfBirth = this.DateOfBirth;
+            ContactDTO.CountryID = this.CountryID;
+            ContactDTO.ImagePath = this.ImagePath;
+
+            if (clsContactDataAccess.UpdateContact(ContactDTO)) return true;
             return false;
         }
 

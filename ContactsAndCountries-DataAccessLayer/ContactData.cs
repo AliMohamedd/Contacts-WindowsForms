@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,136 +11,125 @@ namespace ContactsAndCountries_DataAccessLayer
 {
     public class clsContactDataAccess
     {
-        public static bool GetContactInfoByID(int ID, ref string FirstName, ref string LastName,
-            ref string Email, ref string Phone, ref string Address, ref DateTime DateOfBirth,
-            ref int CountryID, ref string ImagePath)
+        public static clsContactDTO GetContactInfoByID(int ID)
         {
-            bool isFound = false;
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT * FROM Contacts WHERE ContactID = @ContactID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@ContactID", ID);
+            clsContactDTO ContactDTO = null;
 
             try
             {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.Read())
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    //The record was found.
-                    isFound = true;
+                    string query = "SELECT * FROM Contacts WHERE ContactID = @ContactID";
 
-                    FirstName = (string)reader["FirstName"];
-                    LastName = (string)reader["LastName"];
-                    Email = (string)reader["Email"];
-                    Phone = (string)reader["Phone"];
-                    Address = (string)reader["Address"];
-                    DateOfBirth = (DateTime)reader["DateOfBirth"];
-                    CountryID = (int)reader["CountryID"];
-
-
-                    //ImagePath: allows null in database so we shold handle null.
-                    if (reader["ImagePath"] != DBNull.Value)
+                    using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        ImagePath = (string)reader["ImagePath"];
-                    }
-                    else
-                    {
-                        ImagePath = "";
-                    }
+                        command.Parameters.AddWithValue("@ContactID", ID);
 
-                }
-                else
-                {
-                    // The record was not found.
-                    isFound = false;
-                }
+                        connection.Open();
 
-                reader.Close();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                //The record was found.
+
+                                ContactDTO.FirstName = (string)reader["FirstName"];
+                                ContactDTO.LastName = (string)reader["LastName"];
+                                ContactDTO.Email = (string)reader["Email"];
+                                ContactDTO.Phone = (string)reader["Phone"];
+                                ContactDTO.Address = (string)reader["Address"];
+                                ContactDTO.DateOfBirth = (DateTime)reader["DateOfBirth"];
+                                ContactDTO.CountryID = (int)reader["CountryID"];
+
+
+                                //ImagePath: allows null in database so we shold handle null.
+                                if (reader["ImagePath"] != DBNull.Value)
+                                {
+                                    ContactDTO.ImagePath = (string)reader["ImagePath"];
+                                }
+                                else
+                                {
+                                    ContactDTO.ImagePath = "";
+                                }
+
+                            }
+                        }
+                    }
+                }
+             
             }
             catch (Exception Error)
             {
-
+                // Here we can add error to Logs.
+                throw;
             }
-            finally
-            {
-                connection.Close();
-            }
-
-            return isFound;
+            
+            return ContactDTO;
         }
 
-        public static int AddNewContact(string FirstName, string LastName,
-             string Email, string Phone, string Address, DateTime DateOfBirth,
-             int CountryID, string ImagePath)
+        public static int AddNewContact(clsContactDTO ContactDTO)
         {
-            int ContactID = -1;
+            ContactDTO.ID = -1;
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = @"INSERT INTO Contacts (FirstName, LastName, Email, Phone, Address, DateOfBirth, CountryID, ImagePath)
+            try
+            {
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
+                {
+                    string query = @"INSERT INTO Contacts (FirstName, LastName, Email, Phone, Address, DateOfBirth, CountryID, ImagePath)
                                   VALUES (@FirstName, @LastName, @Email, @Phone, @Address, @DateOfBirth, @CountryID, @ImagePath);
                                   SELECT SCOPE_IDENTITY();";
 
-            SqlCommand command = new SqlCommand(query, connection);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@FirstName", ContactDTO.FirstName);
+                        command.Parameters.AddWithValue("@LastName", ContactDTO.LastName);
+                        command.Parameters.AddWithValue("@Email", ContactDTO.Email);
+                        command.Parameters.AddWithValue("@Phone", ContactDTO.Phone);
+                        command.Parameters.AddWithValue("@Address", ContactDTO.Address);
+                        command.Parameters.AddWithValue("@DateOfBirth", ContactDTO.DateOfBirth);
+                        command.Parameters.AddWithValue("@CountryID", ContactDTO.CountryID);
 
-            command.Parameters.AddWithValue("@FirstName", FirstName);
-            command.Parameters.AddWithValue("@LastName", LastName);
-            command.Parameters.AddWithValue("@Email", Email);
-            command.Parameters.AddWithValue("@Phone", Phone);
-            command.Parameters.AddWithValue("@Address", Address);
-            command.Parameters.AddWithValue("@DateOfBirth", DateOfBirth);
-            command.Parameters.AddWithValue("@CountryID", CountryID);
+                        if (ContactDTO.ImagePath != "")
+                        {
+                            command.Parameters.AddWithValue("@ImagePath", ContactDTO.ImagePath);
+                        }
+                        else
+                        {
+                            command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
 
-            if (ImagePath != "")
-            {
-                command.Parameters.AddWithValue("@ImagePath", ImagePath);
-            }
-            else
-            {
-                command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
+                        }
 
-            }
+                        connection.Open();
 
-            try
-            {
-                connection.Open();
+                        object result = command.ExecuteScalar();
 
-                object result = command.ExecuteScalar();
-
-                if (result != null && int.TryParse(result.ToString(), out int insertedID))
-                {
-                    //The Contact inserted Successfully.
-                    ContactID = insertedID;
+                        if (result != null && int.TryParse(result.ToString(), out int insertedID))
+                        {
+                            //The Contact inserted Successfully.
+                            ContactDTO.ID = insertedID;
+                        }
+                    }
                 }
+                
             }
             catch (Exception Error)
             {
-
-            }
-            finally
-            {
-                connection.Close();
+                // Here we can add error to Logs.
+                throw;
             }
 
-            return ContactID;
+            return ContactDTO.ID;
         }
 
-        public static bool UpdateContact(int ID, string FirstName, string LastName,
-             string Email, string Phone, string Address, DateTime DateOfBirth,
-             int CountryID, string ImagePath)
+        public static bool UpdateContact(clsContactDTO ContactDTO)
         {
             int affectedRows = 0;
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = @"UPDATE Contacts
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
+                {
+                    string query = @"UPDATE Contacts
                                 SET FirstName = @FirstName
                                    ,LastName = @LastName
                                    ,Email = @Email
@@ -150,39 +140,36 @@ namespace ContactsAndCountries_DataAccessLayer
                                    ,ImagePath = @ImagePath
                                WHERE ContactID = @ContactID;";
 
-            SqlCommand command = new SqlCommand(query, connection);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@FirstName", ContactDTO.FirstName);
+                        command.Parameters.AddWithValue("@LastName", ContactDTO.LastName);
+                        command.Parameters.AddWithValue("@Email", ContactDTO.Email);
+                        command.Parameters.AddWithValue("@Phone", ContactDTO.Phone);
+                        command.Parameters.AddWithValue("@Address", ContactDTO.Address);
+                        command.Parameters.AddWithValue("@DateOfBirth", ContactDTO.DateOfBirth);
+                        command.Parameters.AddWithValue("@CountryID", ContactDTO.CountryID);
 
-            command.Parameters.AddWithValue("@ContactID", ID);
-            command.Parameters.AddWithValue("@FirstName", FirstName);
-            command.Parameters.AddWithValue("@LastName", LastName);
-            command.Parameters.AddWithValue("@Email", Email);
-            command.Parameters.AddWithValue("@Phone", Phone);
-            command.Parameters.AddWithValue("@Address", Address);
-            command.Parameters.AddWithValue("@DateOfBirth", DateOfBirth);
-            command.Parameters.AddWithValue("@CountryID", CountryID);
+                        if (ContactDTO.ImagePath != "")
+                        {
+                            command.Parameters.AddWithValue("@ImagePath", ContactDTO.ImagePath);
+                        }
+                        else
+                        {
+                            command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
 
-            if (ImagePath != "")
-            {
-                command.Parameters.AddWithValue("@ImagePath", ImagePath);
-            }
-            else
-            {
-                command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
-            }
+                        }
 
-            try
-            {
-                connection.Open();
+                        connection.Open();
 
-                affectedRows = command.ExecuteNonQuery();
+                        affectedRows = command.ExecuteNonQuery();
+                    }
+                }
             }
             catch (Exception Error)
             {
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                // Here we can add error to Logs.
+                throw;
             }
 
             return (affectedRows > 0);
@@ -192,27 +179,26 @@ namespace ContactsAndCountries_DataAccessLayer
         {
             int affectedRows = 0;
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "DELETE FROM Contacts WHERE ContactID = @ContactID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@ContactID", ID);
-
             try
             {
-                connection.Open();
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
+                {
+                    string query = "DELETE FROM Contacts WHERE ContactID = @ContactID";
 
-                affectedRows = command.ExecuteNonQuery();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ContactID", ID);
+
+                        connection.Open();
+
+                        affectedRows = command.ExecuteNonQuery();
+                    }
+                }
             }
             catch (Exception Error)
             {
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                // Here we can add error to Logs.
+                throw;
             }
 
             return (affectedRows > 0);
@@ -220,35 +206,34 @@ namespace ContactsAndCountries_DataAccessLayer
 
         public static DataTable GetAllContacts()
         {
-            DataTable dt = new DataTable();
-
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT * FROM Contacts";
-
-            SqlCommand command = new SqlCommand(query, connection);
+            DataTable dt = null;
 
             try
             {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.HasRows)
+                using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    // Load All Rows.
-                    dt.Load(reader);
-                }
+                    string query = "SELECT * FROM Contacts";
 
-                reader.Close();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                // Load All Rows.
+                                dt = new DataTable();
+                                dt.Load(reader);
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception Error)
             {
-
-            }
-            finally
-            {
-                connection.Close();
+                // Here we can add error to Logs.
+                throw;
             }
 
             return dt;
@@ -256,32 +241,32 @@ namespace ContactsAndCountries_DataAccessLayer
 
         public static bool IsContactExist(int ID)
         {
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString);
-
-            string query = "SELECT 1 FROM Contacts WHERE ContactID = @ContactID";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@ContactID", ID);
-
             try
             {
-                connection.Open();
-
-                object result = command.ExecuteScalar();
-
-                if (result != null)
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.connectionString))
                 {
-                    return true;
+                    string query = "SELECT 1 FROM Contacts WHERE ContactID = @ContactID";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ContactID", ID);
+
+                        connection.Open();
+
+                        object result = command.ExecuteScalar();
+
+                        if (result != null)
+                        {
+                            return true;
+                        }
+                    }
                 }
+                
             }
             catch (Exception Error)
             {
-                return false;
-            }
-            finally
-            {
-                connection.Close();
+                // Here we can add error to Logs.
+                throw;
             }
 
             return false;

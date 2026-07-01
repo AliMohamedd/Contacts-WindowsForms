@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,8 @@ namespace ContactsAndCountries_BusinessLayer
 {
     public class clsCountry
     {
-        private enum enMode { AddNew = 0, Update = 1}
-        private enMode Mode = enMode.AddNew;
+        public enum enMode { AddNew = 0, Update = 1}
+        public enMode Mode { private set; get; }
 
         public int ID { private set; get; }
         public string CountryName{ set; get; }
@@ -21,51 +22,33 @@ namespace ContactsAndCountries_BusinessLayer
         public clsCountry()
         {
             this.ID = -1;
-            this.CountryName = "";
-            this.Code = "";
-            this.PhoneCode = "";
+            this.CountryName = String.Empty;
+            this.Code = String.Empty;
+            this.PhoneCode = String.Empty;
             Mode = enMode.AddNew;
         }
 
-        private clsCountry(int ID, string CountryName, string Code, string PhoneCode)
+        private clsCountry(clsCountryDTO CountryDTO)
         {
-            this.ID = ID;
-            this.CountryName = CountryName;
-            this.Code = Code;
-            this.PhoneCode = Code;
+            this.ID = CountryDTO.ID;
+            this.CountryName = CountryDTO.CountryName;
+            this.Code = CountryDTO.Code;
+            this.PhoneCode = CountryDTO.PhoneCode;
             Mode = enMode.Update;
         }
 
         public static clsCountry Find(int ID)
         {
-            string CountryName = "";
-            string Code = "";
-            string PhoneCode = "";
+            clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByID(ID);
 
-            if(clsCountryDataAccess.GetCountryByID(ID, ref CountryName, ref Code, ref PhoneCode))
-            {
-                return new clsCountry(ID, CountryName, Code, PhoneCode);
-            }
-            else
-            {
-                return null;
-            }
+            return CountryDTO == null ? null : new clsCountry(CountryDTO);
         }
 
         public static clsCountry Find(string CountryName)
         {
-            int ID = -1;
-            string Code = "";
-            string PhoneCode = "";
+            clsCountryDTO CountryDTO = clsCountryDataAccess.GetCountryByName(CountryName);
 
-            if (clsCountryDataAccess.GetCountryByName(CountryName, ref ID, ref Code, ref PhoneCode))
-            {
-                return new clsCountry(ID, CountryName, Code, PhoneCode);
-            }
-            else
-            {
-                return null;
-            }
+            return CountryDTO == null ? null : new clsCountry(CountryDTO);
         }
 
         public static bool IsCountryExist(int ID)
@@ -78,15 +61,31 @@ namespace ContactsAndCountries_BusinessLayer
             return clsCountryDataAccess.IsCountryExist(FirstName);
         }
 
+        private clsCountryDTO _ToDo()
+        {
+            return new clsCountryDTO
+            {
+                ID = this.ID,
+                CountryName = this.CountryName,
+                Code = this.Code,
+                PhoneCode = this.PhoneCode,
+            };
+        }
+
         private bool _AddNewCountry()
         {
-            this.ID = clsCountryDataAccess.AddNewCountry(this.CountryName, this.Code, this.PhoneCode);
+            clsCountryDTO CountryDTO = _ToDo();
+
+            this.ID = clsCountryDataAccess.AddNewCountry(CountryDTO);
+
             return (this.ID != -1);
         }
 
         private bool _UpdateCountry()
         {
-            return clsCountryDataAccess.UpdateCountry(this.ID, this.CountryName, this.Code, this.PhoneCode);
+            clsCountryDTO CountryDTO = _ToDo();
+
+            return clsCountryDataAccess.UpdateCountry(CountryDTO);
         }
         
         public bool Save()
